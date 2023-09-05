@@ -1,6 +1,13 @@
 import "./style.css";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { CAMERA_SETTINGS, ROTATION_SPEED, SIZES } from "./constants";
+import {
+  CAMERA_SETTINGS,
+  PRIMARY_GROUP_RADIUS,
+  ROTATION_SPEED,
+  SECONDARY_GROUP_RADIUS,
+  SIZES,
+  TERTIARY_GROUP_RADIUS,
+} from "./constants";
 import {
   diamondMesh,
   emeraldMesh,
@@ -11,13 +18,21 @@ import {
   coalMesh,
   copperMesh,
 } from "./meshes";
-import { Group, PerspectiveCamera, Scene, WebGLRenderer, Clock } from "three";
+
+import {
+  Group,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+  Clock,
+  Object3D,
+} from "three";
 
 const canvas = document.createElement("canvas");
 canvas.classList.add("web-gl");
 document.body.appendChild(canvas);
 
-const base = new Group()
+const primaryGroup = new Group()
   .add(diamondMesh)
   .add(emeraldMesh)
   .add(goldMesh)
@@ -27,35 +42,33 @@ const base = new Group()
   .add(coalMesh)
   .add(copperMesh);
 
-const baseRadius = 5;
+const secondaryGroup = new Group()
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone())
+  .add(primaryGroup.clone());
 
-base.children.forEach((blockMesh, i) => {
-  const angleIncrement = (2 * Math.PI) / base.children.length;
-  const angle = i * angleIncrement;
-  const x = baseRadius * Math.cos(angle);
-  const y = baseRadius * Math.sin(angle);
-  const z = 0;
-  blockMesh.position.set(x, y, z);
-});
-
-const metaGroup = new Group()
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone())
-  .add(base.clone());
-
-const metaGroupRadius = 30;
+const tertiaryGroup = new Group()
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone());
 
 const camera = new PerspectiveCamera(
   CAMERA_SETTINGS.fov,
@@ -63,9 +76,7 @@ const camera = new PerspectiveCamera(
   CAMERA_SETTINGS.near,
   CAMERA_SETTINGS.far,
 );
-camera.position.z = 50;
-
-const scene = new Scene().add(metaGroup);
+camera.position.z = 800;
 
 const renderer = new WebGLRenderer({ canvas });
 renderer.setSize(SIZES.width, SIZES.height);
@@ -73,50 +84,72 @@ renderer.setSize(SIZES.width, SIZES.height);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 
+const scene = new Scene();
+scene.add(tertiaryGroup);
+scene.add(camera);
+
+const TERTIARY_Z_FACTOR = 200;
+const SECONDARY_Z_FACTOR = 400;
+const PRIMARY_Z_FACTOR = 100;
+
 const clock = new Clock();
 
-const tick = () => {
+const TERTIARY_GROUP_ANGLE_INCREMENT =
+  (2 * Math.PI) / tertiaryGroup.children.length;
+const SECONDARY_GROUP_ANGLE_INCREMENT =
+  (2 * Math.PI) / secondaryGroup.children.length;
+const PRIMARY_GROUP_ANGLE_INCREMENT =
+  (2 * Math.PI) / primaryGroup.children.length;
+
+const updatePrimaryGroupChildren = (child: Object3D, index: number) => {
   const elapsedTime = clock.getElapsedTime();
+  const angle = index * PRIMARY_GROUP_ANGLE_INCREMENT;
 
-  metaGroup.children.forEach((group, i) => {
-    const metaGroupAngleIncrement = (2 * Math.PI) / metaGroup.children.length;
-    const metaGroupAngle = i * metaGroupAngleIncrement;
+  child.position.set(
+    PRIMARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
+    PRIMARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+    index % 2
+      ? Math.sin(elapsedTime * ROTATION_SPEED) * PRIMARY_Z_FACTOR
+      : Math.cos(elapsedTime * ROTATION_SPEED) * PRIMARY_Z_FACTOR,
+  );
+};
 
-    group.position.x =
-      metaGroupRadius * Math.sin(metaGroupAngle + elapsedTime * ROTATION_SPEED);
-    group.position.y =
-      metaGroupRadius * Math.cos(metaGroupAngle + elapsedTime * ROTATION_SPEED);
+const updateSecondaryGroupChildren = (child: Object3D, index: number) => {
+  const elapsedTime = clock.getElapsedTime();
+  const angle = index * SECONDARY_GROUP_ANGLE_INCREMENT;
 
-    group.position.z =
-      i % 2 === 0
-        ? Math.sin(elapsedTime * ROTATION_SPEED) * 10
-        : Math.cos(elapsedTime * ROTATION_SPEED) * 10;
+  child.position.set(
+    SECONDARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
+    SECONDARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+    index % 2
+      ? Math.sin(elapsedTime * ROTATION_SPEED) * SECONDARY_Z_FACTOR
+      : Math.cos(elapsedTime * ROTATION_SPEED) * SECONDARY_Z_FACTOR,
+  );
 
-    group.rotation.x = elapsedTime * ROTATION_SPEED;
-    group.rotation.y = elapsedTime * ROTATION_SPEED;
-    group.rotation.z = elapsedTime * ROTATION_SPEED;
+  child.children.forEach(updatePrimaryGroupChildren);
+};
 
-    group.children.forEach((blockMesh, j) => {
-      const groupAngleIncrement = (2 * Math.PI) / group.children.length;
-      const groupAngle = j * groupAngleIncrement;
+const updateTertiaryGroupChildren = (child: Object3D, index: number) => {
+  const elapsedTime = clock.getElapsedTime();
+  const angle = index * TERTIARY_GROUP_ANGLE_INCREMENT;
 
-      blockMesh.position.x =
-        baseRadius * Math.sin(groupAngle + elapsedTime * ROTATION_SPEED);
-      blockMesh.position.y =
-        baseRadius * Math.cos(groupAngle + elapsedTime * ROTATION_SPEED);
+  child.position.set(
+    TERTIARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
+    TERTIARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+    index % 2
+      ? Math.sin(elapsedTime * ROTATION_SPEED) * TERTIARY_Z_FACTOR
+      : Math.cos(elapsedTime * ROTATION_SPEED) * TERTIARY_Z_FACTOR,
+  );
 
-      blockMesh.position.z =
-        j % 2 === 0
-          ? Math.sin(elapsedTime * ROTATION_SPEED) * 10
-          : Math.cos(elapsedTime * ROTATION_SPEED) * 10;
-    });
-  });
+  child.children.forEach(updateSecondaryGroupChildren);
+};
 
+const tick = () => {
+  tertiaryGroup.children.forEach(updateTertiaryGroupChildren);
   controls.update();
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
 };
-
 tick();
 
 window.addEventListener("resize", () => {
