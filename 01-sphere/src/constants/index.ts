@@ -9,3 +9,5 @@ export const CAMERA_SETTINGS = {
   near: 0.1,
   far: 100,
 };
+
+export const ROTATION_SPEED = 0.2;
