@@ -1,44 +1,79 @@
 import "./style.css";
-import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-
-const SIZES = {
-  width: window.innerWidth,
-  height: window.innerHeight,
-};
+import { CAMERA_SETTINGS, SIZES } from "./constants";
+import {
+  diamondMesh,
+  emeraldMesh,
+  goldMesh,
+  ironMesh,
+  lapisMesh,
+  redstoneMesh,
+  coalMesh,
+  copperMesh,
+} from "./meshes";
+import { Group, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 
 const canvas = document.createElement("canvas");
 canvas.classList.add("web-gl");
 document.body.appendChild(canvas);
-const scene = new THREE.Scene();
 
-const geometry = new THREE.SphereGeometry(1, 32, 32);
-const material = new THREE.MeshBasicMaterial({
-  color: 0xff0000,
-  wireframe: true,
+const base = new Group()
+  .add(diamondMesh)
+  .add(emeraldMesh)
+  .add(goldMesh)
+  .add(ironMesh)
+  .add(lapisMesh)
+  .add(redstoneMesh)
+  .add(coalMesh)
+  .add(copperMesh);
+
+const baseRadius = 5;
+
+base.children.forEach((blockMesh, i) => {
+  const angleIncrement = (2 * Math.PI) / base.children.length;
+  const angle = i * angleIncrement;
+  const x = baseRadius * Math.cos(angle);
+  const y = baseRadius * Math.sin(angle);
+  const z = 0;
+  blockMesh.position.set(x, y, z);
 });
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+const metaGroup = new Group()
+  .add(base.clone())
+  .add(base.clone())
+  .add(base.clone())
+  .add(base.clone());
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  SIZES.width / SIZES.height,
-  0.1,
-  100,
+const metaGroupRadius = 10;
+
+metaGroup.children.forEach((group, i) => {
+  const angleIncrement = (2 * Math.PI) / metaGroup.children.length;
+  const angle = i * angleIncrement;
+  const x = metaGroupRadius * Math.cos(angle);
+  const y = metaGroupRadius * Math.sin(angle);
+  const z = 0;
+  group.position.set(x, y, z);
+});
+
+const camera = new PerspectiveCamera(
+  CAMERA_SETTINGS.fov,
+  CAMERA_SETTINGS.aspect,
+  CAMERA_SETTINGS.near,
+  CAMERA_SETTINGS.far,
 );
-camera.position.z = 3;
-scene.add(camera);
+camera.position.z = 15;
 
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-});
+const scene = new Scene().add(metaGroup);
+
+const renderer = new WebGLRenderer({ canvas });
 renderer.setSize(SIZES.width, SIZES.height);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 
+// const clock = new Clock();
 const tick = () => {
+  controls.update();
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
 };
