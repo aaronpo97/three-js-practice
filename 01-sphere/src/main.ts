@@ -1,5 +1,5 @@
 import "./style.css";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 import {
   CAMERA_SETTINGS,
   PRIMARY_GROUP_RADIUS,
@@ -26,6 +26,7 @@ import {
   WebGLRenderer,
   Clock,
   Object3D,
+  Vector3,
 } from "three";
 
 const canvas = document.createElement("canvas");
@@ -48,16 +49,6 @@ const secondaryGroup = new Group()
   .add(primaryGroup.clone())
   .add(primaryGroup.clone())
   .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
   .add(primaryGroup.clone());
 
 const tertiaryGroup = new Group()
@@ -68,7 +59,9 @@ const tertiaryGroup = new Group()
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone());
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .rotateX(Math.PI / 2);
 
 const camera = new PerspectiveCamera(
   CAMERA_SETTINGS.fov,
@@ -76,13 +69,12 @@ const camera = new PerspectiveCamera(
   CAMERA_SETTINGS.near,
   CAMERA_SETTINGS.far,
 );
-camera.position.z = 800;
+camera.position.z = 1500;
 
 const renderer = new WebGLRenderer({ canvas });
 renderer.setSize(SIZES.width, SIZES.height);
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+const controls = new TrackballControls(camera, canvas);
 
 const scene = new Scene();
 scene.add(tertiaryGroup);
@@ -102,29 +94,42 @@ const PRIMARY_GROUP_ANGLE_INCREMENT =
   (2 * Math.PI) / primaryGroup.children.length;
 
 const updatePrimaryGroupChildren = (child: Object3D, index: number) => {
+  const PRIMARY_ROTATION_SPEED = ROTATION_SPEED * 1.5;
+
   const elapsedTime = clock.getElapsedTime();
   const angle = index * PRIMARY_GROUP_ANGLE_INCREMENT;
 
-  child.position.set(
-    PRIMARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
-    PRIMARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+  const x =
+    PRIMARY_GROUP_RADIUS *
+    Math.sin(angle + elapsedTime * PRIMARY_ROTATION_SPEED * 5);
+  const y =
+    PRIMARY_GROUP_RADIUS *
+    Math.cos(angle + elapsedTime * PRIMARY_ROTATION_SPEED * 5);
+
+  const z =
     index % 2
-      ? Math.sin(elapsedTime * ROTATION_SPEED) * PRIMARY_Z_FACTOR
-      : Math.cos(elapsedTime * ROTATION_SPEED) * PRIMARY_Z_FACTOR,
-  );
+      ? Math.sin(elapsedTime * PRIMARY_ROTATION_SPEED) * PRIMARY_Z_FACTOR
+      : Math.cos(elapsedTime * PRIMARY_ROTATION_SPEED) * PRIMARY_Z_FACTOR;
+  child.position.set(x, y, z);
 };
 
 const updateSecondaryGroupChildren = (child: Object3D, index: number) => {
+  const SECONDARY_ROTATION_SPEED = ROTATION_SPEED * 2;
   const elapsedTime = clock.getElapsedTime();
   const angle = index * SECONDARY_GROUP_ANGLE_INCREMENT;
 
-  child.position.set(
-    SECONDARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
-    SECONDARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+  const x =
+    SECONDARY_GROUP_RADIUS *
+    Math.sin(angle + elapsedTime * SECONDARY_ROTATION_SPEED);
+  const y =
+    SECONDARY_GROUP_RADIUS *
+    Math.cos(angle + elapsedTime * SECONDARY_ROTATION_SPEED);
+  const z =
     index % 2
-      ? Math.sin(elapsedTime * ROTATION_SPEED) * SECONDARY_Z_FACTOR
-      : Math.cos(elapsedTime * ROTATION_SPEED) * SECONDARY_Z_FACTOR,
-  );
+      ? Math.sin(elapsedTime * SECONDARY_ROTATION_SPEED) * SECONDARY_Z_FACTOR
+      : Math.cos(elapsedTime * SECONDARY_ROTATION_SPEED) * SECONDARY_Z_FACTOR;
+
+  child.position.set(x, y, z);
 
   child.children.forEach(updatePrimaryGroupChildren);
 };
@@ -133,19 +138,27 @@ const updateTertiaryGroupChildren = (child: Object3D, index: number) => {
   const elapsedTime = clock.getElapsedTime();
   const angle = index * TERTIARY_GROUP_ANGLE_INCREMENT;
 
-  child.position.set(
-    TERTIARY_GROUP_RADIUS * Math.sin(angle + elapsedTime * ROTATION_SPEED),
-    TERTIARY_GROUP_RADIUS * Math.cos(angle + elapsedTime * ROTATION_SPEED),
+  const TERTIARY_ROTATION_SPEED = ROTATION_SPEED * 0.8;
+
+  const x =
+    TERTIARY_GROUP_RADIUS *
+    Math.sin(angle + elapsedTime * TERTIARY_ROTATION_SPEED);
+  const y =
+    TERTIARY_GROUP_RADIUS *
+    Math.cos(angle + elapsedTime * TERTIARY_ROTATION_SPEED);
+  const z =
     index % 2
-      ? Math.sin(elapsedTime * ROTATION_SPEED) * TERTIARY_Z_FACTOR
-      : Math.cos(elapsedTime * ROTATION_SPEED) * TERTIARY_Z_FACTOR,
-  );
+      ? Math.sin(elapsedTime * TERTIARY_ROTATION_SPEED) * TERTIARY_Z_FACTOR
+      : Math.cos(elapsedTime * TERTIARY_ROTATION_SPEED) * TERTIARY_Z_FACTOR;
+
+  child.position.set(x, y, z);
 
   child.children.forEach(updateSecondaryGroupChildren);
 };
 
 const tick = () => {
   tertiaryGroup.children.forEach(updateTertiaryGroupChildren);
+
   controls.update();
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
