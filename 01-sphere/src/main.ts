@@ -54,27 +54,19 @@ const primaryGroup = new Group()
   .add(coalMesh)
   .add(copperMesh);
 
-const secondaryGroup = new Group()
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone())
-  .add(primaryGroup.clone());
+const createMetaGroup = (group: Group, replications: number): Group => {
+  const clonedGroup = new Group();
 
-const tertiaryGroup = new Group()
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .add(secondaryGroup.clone())
-  .rotateX(Math.PI / 2);
+  for (let i = 0; i < replications; i++) {
+    clonedGroup.add(group.clone());
+  }
+
+  return clonedGroup;
+};
+
+const secondaryGroup = createMetaGroup(primaryGroup, 10);
+
+const tertiaryGroup = createMetaGroup(secondaryGroup, 12).rotateX(Math.PI / 2);
 
 const mainMesh = new Mesh(
   new BoxGeometry(300, 300, 300),
@@ -179,11 +171,7 @@ const updateTertiaryGroupChildren = (child: Object3D, index: number) => {
 const tick = () => {
   tertiaryGroup.children.forEach(updateTertiaryGroupChildren);
 
-  const elapsedTime = clock.getElapsedTime();
-
-  const MAIN_MESH_ROTATION_SPEED = ROTATION_SPEED * 0.1;
-
-  mainMesh.rotation.y += 0.01;
+  mainMesh.rotation.y += ROTATION_SPEED * 0.01;
 
   controls.update();
   renderer.render(scene, camera);
