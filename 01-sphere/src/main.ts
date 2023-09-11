@@ -62,11 +62,6 @@ const secondaryGroup = new Group()
   .add(primaryGroup.clone())
   .add(primaryGroup.clone());
 
-const mainMesh = new Mesh(
-  new BoxGeometry(300, 300, 300),
-  new MeshBasicMaterial({ map: coalTexture }),
-);
-
 const tertiaryGroup = new Group()
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
@@ -79,8 +74,12 @@ const tertiaryGroup = new Group()
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
-
   .rotateX(Math.PI / 2);
+
+const mainMesh = new Mesh(
+  new BoxGeometry(300, 300, 300),
+  new MeshBasicMaterial({ map: coalTexture }),
+);
 
 const camera = new PerspectiveCamera(
   CAMERA_SETTINGS.fov,
@@ -96,7 +95,8 @@ renderer.setSize(SIZES.width, SIZES.height);
 const controls = new TrackballControls(camera, canvas);
 
 const scene = new Scene();
-scene.add(tertiaryGroup);
+scene.add(new Object3D().add(tertiaryGroup));
+scene.add(mainMesh);
 scene.add(camera);
 
 const TERTIARY_Z_FACTOR = 200;
@@ -178,6 +178,12 @@ const updateTertiaryGroupChildren = (child: Object3D, index: number) => {
 
 const tick = () => {
   tertiaryGroup.children.forEach(updateTertiaryGroupChildren);
+
+  const elapsedTime = clock.getElapsedTime();
+
+  const MAIN_MESH_ROTATION_SPEED = ROTATION_SPEED * 0.1;
+
+  mainMesh.rotation.y += 0.01;
 
   controls.update();
   renderer.render(scene, camera);
