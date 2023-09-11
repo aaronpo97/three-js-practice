@@ -3,11 +3,13 @@ import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 import {
   CAMERA_SETTINGS,
   PRIMARY_GROUP_RADIUS,
-  ROTATION_SPEED,
   SECONDARY_GROUP_RADIUS,
   SIZES,
   TERTIARY_GROUP_RADIUS,
 } from "./constants";
+
+import { debounce } from "lodash";
+
 import {
   diamondMesh,
   emeraldMesh,
@@ -26,8 +28,17 @@ import {
   WebGLRenderer,
   Clock,
   Object3D,
-  Vector3,
+  Mesh,
+  BoxGeometry,
+  MeshBasicMaterial,
 } from "three";
+
+import { GUI } from "lil-gui";
+import { coalTexture } from "./textures";
+
+const gui = new GUI();
+
+let ROTATION_SPEED = 0.5;
 
 const canvas = document.createElement("canvas");
 canvas.classList.add("web-gl");
@@ -51,6 +62,11 @@ const secondaryGroup = new Group()
   .add(primaryGroup.clone())
   .add(primaryGroup.clone());
 
+const mainMesh = new Mesh(
+  new BoxGeometry(300, 300, 300),
+  new MeshBasicMaterial({ map: coalTexture }),
+);
+
 const tertiaryGroup = new Group()
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
@@ -61,6 +77,9 @@ const tertiaryGroup = new Group()
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
   .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+  .add(secondaryGroup.clone())
+
   .rotateX(Math.PI / 2);
 
 const camera = new PerspectiveCamera(
@@ -99,6 +118,7 @@ const updatePrimaryGroupChildren = (child: Object3D, index: number) => {
   const elapsedTime = clock.getElapsedTime();
   const angle = index * PRIMARY_GROUP_ANGLE_INCREMENT;
 
+  // Translate the child along the x and y axis to create a circular motion.
   const x =
     PRIMARY_GROUP_RADIUS *
     Math.sin(angle + elapsedTime * PRIMARY_ROTATION_SPEED * 5);
@@ -106,6 +126,7 @@ const updatePrimaryGroupChildren = (child: Object3D, index: number) => {
     PRIMARY_GROUP_RADIUS *
     Math.cos(angle + elapsedTime * PRIMARY_ROTATION_SPEED * 5);
 
+  // Go in a back and forth motion along the z axis, each child alternating between sin and cos.
   const z =
     index % 2
       ? Math.sin(elapsedTime * PRIMARY_ROTATION_SPEED) * PRIMARY_Z_FACTOR
@@ -152,7 +173,6 @@ const updateTertiaryGroupChildren = (child: Object3D, index: number) => {
       : Math.cos(elapsedTime * TERTIARY_ROTATION_SPEED) * TERTIARY_Z_FACTOR;
 
   child.position.set(x, y, z);
-
   child.children.forEach(updateSecondaryGroupChildren);
 };
 
@@ -164,6 +184,62 @@ const tick = () => {
   window.requestAnimationFrame(tick);
 };
 tick();
+
+gui
+  .add({ rotationSpeed: ROTATION_SPEED }, "rotationSpeed")
+  .min(0)
+  .max(1)
+  .step(0.01)
+  .onChange(
+    debounce((value: number) => {
+      ROTATION_SPEED = value;
+    }, 50),
+  )
+  .name("Rotation Speed");
+
+gui
+  .add(camera, "fov")
+  .min(0)
+  .max(180)
+  .step(1)
+  .name("FOV")
+  .onChange((value: number) => {
+    camera.fov = value;
+    camera.updateProjectionMatrix();
+  });
+
+gui
+  .add(tertiaryGroup.position, "x")
+  .min(-1000)
+  .max(1000)
+  .step(1)
+  .name("X Axis")
+  .onChange((value: number) => {
+    tertiaryGroup.position.x = value;
+    mainMesh.position.x = value;
+  });
+
+gui
+  .add(tertiaryGroup.position, "y")
+  .min(-1000)
+  .max(1000)
+  .step(1)
+  .name("Y Axis")
+  .onChange((value: number) => {
+    tertiaryGroup.position.y = value;
+    mainMesh.position.y = value;
+  });
+
+gui
+  .add(tertiaryGroup.position, "z")
+  .min(-1000)
+  .max(1000)
+  .step(1)
+  .name("Z Axis")
+  .onChange((value: number) => {
+    tertiaryGroup.position.z = value;
+    mainMesh.position.z = value;
+  });
 
 window.addEventListener("resize", () => {
   // Update sizes
