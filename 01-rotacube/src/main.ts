@@ -15,7 +15,7 @@ document.body.appendChild(canvas);
 const controls = new TrackballControls(camera, canvas);
 const axesHelper = new AxesHelper(10000);
 
-const group = new Group()
+const mainGroup = new Group()
   .add(tertiaryGroup.clone().translateY(800))
   .add(tertiaryGroup.clone().translateY(-800))
   .add(
@@ -32,24 +32,30 @@ const group = new Group()
   )
   .add(mainMesh);
 
-scene.add(axesHelper).add(group).add(camera);
+scene.add(axesHelper).add(mainGroup).add(camera);
 
-let baseRotationSpeed = 0.5;
+const config = {
+  baseRotationSpeed: 0.5,
+};
+
+axesHelper.visible = false;
 
 gui
-  .add({ baseRotationSpeed }, "baseRotationSpeed")
+  .add(config, "baseRotationSpeed")
+  .listen()
   .min(0)
   .max(1)
   .step(0.01)
   .onChange(
     debounce((value: number) => {
-      baseRotationSpeed = value;
+      config.baseRotationSpeed = value;
     }, 50),
   )
   .name("Rotation Speed");
 
 gui
   .add(camera, "fov")
+  .listen()
   .min(0)
   .max(130)
   .step(1)
@@ -62,7 +68,7 @@ gui
   );
 
 gui
-  .add(group.position, "x")
+  .add(mainGroup.position, "x")
   .listen()
   .min(-1000)
   .max(1000)
@@ -70,77 +76,88 @@ gui
   .name("X Axis")
   .onChange(
     debounce((value: number) => {
-      group.position.x = value;
+      mainGroup.position.x = value;
       mainMesh.position.x = value;
     }),
   );
 
 gui
-  .add(group.position, "y")
+  .add(mainGroup.position, "y")
+  .listen()
   .min(-1000)
   .max(1000)
   .step(1)
   .name("Y Axis")
   .onChange(
     debounce((value: number) => {
-      group.position.y = value;
+      mainGroup.position.y = value;
       mainMesh.position.y = value;
     }),
   );
 
 gui
-  .add(group.position, "z")
+  .add(mainGroup.position, "z")
+  .listen()
   .min(-1000)
   .max(1000)
   .step(1)
   .name("Z Axis")
   .onChange(
     debounce((value: number) => {
-      group.position.z = value;
+      mainGroup.position.z = value;
       mainMesh.position.z = value;
     }),
   );
 
 // reset the controls using gui
 
-gui.add(axesHelper, "visible").name("Show axes");
-gui.add(controls, "reset").name("Reset camera");
+gui.add(axesHelper, "visible").listen().name("Show Axes Helper");
+gui
+  .add(controls, "reset")
+  .name("Reset Camera Controls")
+  .onChange(() => {
+    camera.fov = 100;
+    config.baseRotationSpeed = 0.5;
+    axesHelper.visible = false;
+    mainGroup.position.set(0, 0, 0);
+    controls.reset();
+  });
 
 const animate = () => {
-  group.children[0].children.forEach((child, index) =>
+  mainGroup.children[0].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
-      rotationSpeed: baseRotationSpeed,
+      rotationSpeed: config.baseRotationSpeed,
     }),
   );
 
-  group.children[1].children.forEach((child, index) =>
+  mainGroup.children[1].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
-      rotationSpeed: baseRotationSpeed,
+      rotationSpeed: config.baseRotationSpeed,
       reverse: true,
     }),
   );
 
-  group.children[2].children.forEach((child, index) =>
+  mainGroup.children[2].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
-      rotationSpeed: baseRotationSpeed,
+      rotationSpeed: config.baseRotationSpeed,
     }),
   );
 
-  group.children[3].children.forEach((child, index) =>
+  mainGroup.children[3].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
-      rotationSpeed: baseRotationSpeed,
+      rotationSpeed: config.baseRotationSpeed,
       reverse: true,
     }),
   );
-  mainMesh.rotation.y += baseRotationSpeed * 0.01;
+  mainMesh.rotation.y += config.baseRotationSpeed * 0.01;
 
   renderer.render(scene, camera);
   controls.update();
