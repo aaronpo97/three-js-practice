@@ -3,40 +3,26 @@ import "./style.css";
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 import debounce from "lodash/debounce";
-import { AxesHelper, Group } from "three";
-import { tertiaryGroup } from "./groups";
+import { AxesHelper } from "three";
+
 import { mainMesh } from "./meshes";
 import { camera, canvas, gui, renderer, scene } from "./objects";
 import { onDoubleClick, onResize } from "./events";
 import { updateTertiaryGroupChildren } from "./util/updateChildren";
+import { main } from "./groups";
 
 document.body.appendChild(canvas);
 
 const controls = new TrackballControls(camera, canvas);
+controls.maxDistance = 5000;
+
 const axesHelper = new AxesHelper(10000);
 
-const mainGroup = new Group()
-  .add(tertiaryGroup.clone().translateY(800))
-  .add(tertiaryGroup.clone().translateY(-800))
-  .add(
-    tertiaryGroup
-      .clone()
-      .translateX(2500)
-      .rotateZ(Math.PI / 2),
-  )
-  .add(
-    tertiaryGroup
-      .clone()
-      .translateX(-2500)
-      .rotateZ(Math.PI / 2),
-  )
-  .add(mainMesh);
+controls.enabled = true;
 
-scene.add(axesHelper).add(mainGroup).add(camera);
+scene.add(axesHelper).add(main).add(camera);
 
-const config = {
-  baseRotationSpeed: 0.5,
-};
+const config = { baseRotationSpeed: 0.5 };
 
 axesHelper.visible = false;
 
@@ -68,7 +54,7 @@ gui
   );
 
 gui
-  .add(mainGroup.position, "x")
+  .add(main.position, "x")
   .listen()
   .min(-1000)
   .max(1000)
@@ -76,13 +62,13 @@ gui
   .name("X Axis")
   .onChange(
     debounce((value: number) => {
-      mainGroup.position.x = value;
+      main.position.x = value;
       mainMesh.position.x = value;
     }),
   );
 
 gui
-  .add(mainGroup.position, "y")
+  .add(main.position, "y")
   .listen()
   .min(-1000)
   .max(1000)
@@ -90,13 +76,13 @@ gui
   .name("Y Axis")
   .onChange(
     debounce((value: number) => {
-      mainGroup.position.y = value;
+      main.position.y = value;
       mainMesh.position.y = value;
     }),
   );
 
 gui
-  .add(mainGroup.position, "z")
+  .add(main.position, "z")
   .listen()
   .min(-1000)
   .max(1000)
@@ -104,7 +90,7 @@ gui
   .name("Z Axis")
   .onChange(
     debounce((value: number) => {
-      mainGroup.position.z = value;
+      main.position.z = value;
       mainMesh.position.z = value;
     }),
   );
@@ -119,12 +105,14 @@ gui
     camera.fov = 100;
     config.baseRotationSpeed = 0.5;
     axesHelper.visible = false;
-    mainGroup.position.set(0, 0, 0);
+    main.position.set(0, 0, 0);
     controls.reset();
   });
 
+gui.open(true);
+
 const animate = () => {
-  mainGroup.children[0].children.forEach((child, index) =>
+  main.children[0].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
@@ -132,7 +120,7 @@ const animate = () => {
     }),
   );
 
-  mainGroup.children[1].children.forEach((child, index) =>
+  main.children[1].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
@@ -141,7 +129,7 @@ const animate = () => {
     }),
   );
 
-  mainGroup.children[2].children.forEach((child, index) =>
+  main.children[2].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,
@@ -149,7 +137,7 @@ const animate = () => {
     }),
   );
 
-  mainGroup.children[3].children.forEach((child, index) =>
+  main.children[3].children.forEach((child, index) =>
     updateTertiaryGroupChildren({
       child,
       index,

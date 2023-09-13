@@ -8,6 +8,7 @@ import {
   redstoneMesh,
   coalMesh,
   copperMesh,
+  mainMesh,
 } from "../meshes";
 
 import { createReplicatedGroup } from "../util/create";
@@ -25,4 +26,24 @@ const primaryGroup = new Group()
 const secondaryGroup = createReplicatedGroup(primaryGroup, 10);
 const tertiaryGroup = createReplicatedGroup(secondaryGroup, 12);
 
-export { primaryGroup, secondaryGroup, tertiaryGroup };
+const top = tertiaryGroup.clone().translateY(1000);
+const bottom = tertiaryGroup.clone().translateY(-1000);
+
+const left = tertiaryGroup
+  .clone()
+  .translateX(2000)
+  .rotateZ(Math.PI / 2);
+
+const right = tertiaryGroup
+  .clone()
+  .translateX(-2000)
+  .rotateZ(Math.PI / 2);
+
+const main = new Group()
+  .add(top)
+  .add(bottom)
+  .add(left)
+  .add(right)
+  .add(mainMesh);
+
+export { primaryGroup, secondaryGroup, tertiaryGroup, main };

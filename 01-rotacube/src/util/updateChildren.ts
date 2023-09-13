@@ -11,11 +11,7 @@ import {
   TERTIARY_Y_FACTOR,
 } from "../constants";
 import { clock } from "../objects";
-import {
-  calculateXPosition,
-  calculateYPosition,
-  calculateZPosition,
-} from "./calculatePositions";
+import calculatePositions from "./calculatePositions";
 
 type UpdateGroupChildrenArgs = {
   child: Object3D;
@@ -34,27 +30,14 @@ const updatePrimaryGroupChildren = ({
   const angleIncrement = index * PRIMARY_GROUP_ANGLE_INCREMENT;
   const PRIMARY_ROTATION_SPEED = rotationSpeed * 1.5;
 
-  const x = calculateXPosition({
-    elapsedTime,
-    reverse,
+  const { x, y, z } = calculatePositions({
     angleIncrement,
-    radius: PRIMARY_GROUP_RADIUS,
-    rotationSpeed: PRIMARY_ROTATION_SPEED,
-  });
-
-  const y = calculateYPosition({
     elapsedTime,
     index,
-    rotationSpeed: PRIMARY_ROTATION_SPEED,
-    yFactor: PRIMARY_Y_FACTOR,
-  });
-
-  const z = calculateZPosition({
-    elapsedTime,
     reverse,
-    angleIncrement,
     radius: PRIMARY_GROUP_RADIUS,
     rotationSpeed: PRIMARY_ROTATION_SPEED,
+    yFactor: PRIMARY_Y_FACTOR,
   });
 
   child.position.set(x, y, z);
@@ -72,27 +55,14 @@ const updateSecondaryGroupChildren = ({
 
   const SECONDARY_ROTATION_SPEED = rotationSpeed * 1.2;
 
-  const x = calculateXPosition({
+  const { x, y, z } = calculatePositions({
     angleIncrement,
     elapsedTime,
     reverse,
-    radius: SECONDARY_GROUP_RADIUS,
-    rotationSpeed: SECONDARY_ROTATION_SPEED,
-  });
-
-  const y = calculateYPosition({
-    elapsedTime,
     index,
+    radius: SECONDARY_GROUP_RADIUS,
     rotationSpeed: SECONDARY_ROTATION_SPEED,
     yFactor: SECONDARY_Y_FACTOR,
-  });
-
-  const z = calculateZPosition({
-    angleIncrement,
-    elapsedTime,
-    reverse,
-    radius: SECONDARY_GROUP_RADIUS,
-    rotationSpeed: SECONDARY_ROTATION_SPEED,
   });
 
   child.position.set(x, y, z);
@@ -118,27 +88,14 @@ const updateTertiaryGroupChildren = ({
 
   const TERTIARY_ROTATION_SPEED = rotationSpeed;
 
-  const x = calculateXPosition({
+  const { x, y, z } = calculatePositions({
     angleIncrement,
     elapsedTime,
     reverse,
-    radius: TERTIARY_GROUP_RADIUS,
-    rotationSpeed: TERTIARY_ROTATION_SPEED,
-  });
-
-  const y = calculateYPosition({
-    elapsedTime,
     index,
+    radius: TERTIARY_GROUP_RADIUS,
     rotationSpeed: TERTIARY_ROTATION_SPEED,
     yFactor: TERTIARY_Y_FACTOR,
-  });
-
-  const z = calculateZPosition({
-    angleIncrement,
-    elapsedTime,
-    reverse,
-    radius: TERTIARY_GROUP_RADIUS,
-    rotationSpeed: TERTIARY_ROTATION_SPEED,
   });
 
   child.position.set(x, y, z);
