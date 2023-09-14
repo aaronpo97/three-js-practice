@@ -112,41 +112,17 @@ gui
 gui.open(true);
 
 const animate = () => {
-  main.children[0].children.forEach((child, index) =>
-    updateTertiaryGroupChildren({
-      child,
-      index,
-      rotationSpeed: config.baseRotationSpeed,
-    }),
-  );
-
-  main.children[1].children.forEach((child, index) =>
-    updateTertiaryGroupChildren({
-      child,
-      index,
-      rotationSpeed: config.baseRotationSpeed,
-      reverse: true,
-    }),
-  );
-
-  main.children[2].children.forEach((child, index) =>
-    updateTertiaryGroupChildren({
-      child,
-      index,
-      rotationSpeed: config.baseRotationSpeed,
-    }),
-  );
-
-  main.children[3].children.forEach((child, index) =>
-    updateTertiaryGroupChildren({
-      child,
-      index,
-      rotationSpeed: config.baseRotationSpeed,
-      reverse: true,
-    }),
-  );
-  mainMesh.rotation.y += config.baseRotationSpeed * 0.01;
-
+  main.children.forEach((group, i) => {
+    group.children.forEach((child, index) => {
+      const reverse = i % 2 === 0;
+      updateTertiaryGroupChildren({
+        child,
+        rotationSpeed: config.baseRotationSpeed,
+        reverse,
+        index,
+      });
+    });
+  });
   renderer.render(scene, camera);
   controls.update();
 
