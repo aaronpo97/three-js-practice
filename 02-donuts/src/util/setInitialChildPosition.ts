@@ -1,4 +1,4 @@
-import { MAX_DISTANCE } from "./constants";
+import { MAX_DISTANCE } from "../constants";
 import calculateRandomCoordinates from "./calculateRandomCoordinates";
 import { Object3D } from "three";
 

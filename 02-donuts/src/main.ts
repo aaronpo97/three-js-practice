@@ -2,7 +2,7 @@ import { onResize, onDoubleClick } from "./events";
 import { canvas, controls, scene } from "./objects";
 import { torusGroup } from "./objects/mesh";
 import { MAX_DISTANCE } from "./constants";
-import { animate } from "./animate";
+import animate from "./util/animate";
 
 import "./style.css";
 
